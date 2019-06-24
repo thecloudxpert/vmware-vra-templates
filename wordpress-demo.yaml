@@ -1,0 +1,124 @@
+inputs:
+  env:
+    type: string
+    enum:
+      - 'env:dev'
+      - 'env:prod'
+      - 'env:test'
+    default: 'env:dev'
+    title: Environment
+    description: Target Environment
+  size:
+    type: string
+    enum:
+      - small
+      - medium
+      - large
+    description: Size of Nodes
+    title: Tier Machine Size
+  username:
+    type: string
+    minLength: 4
+    maxLength: 20
+    pattern: '[a-z]+'
+    title: Database Username
+    description: Database Username
+  userpassword:
+    type: string
+    pattern: '[a-z0-9A-Z@#$]+'
+    encrypted: true
+    title: Database Password
+    description: Database Password
+  databaseDiskSize:
+    type: number
+    default: 4
+    maximum: 10
+    title: MySQL Data Disk Size
+    description: Database Disk Size
+  archiveDiskSize:
+    type: number
+    default: 4
+    maximum: 10
+    title: Wordpress Archive Disk Size
+    description: Archive Storage Disk Speed
+resources:
+  DBTier:
+    type: Cloud.Machine
+    metadata:
+      layoutPosition:
+        - 0
+        - 0
+    properties:
+      name: mysql
+      image: ubuntu-16
+      flavor: '${input.size}'
+      constraints:
+        - tag: '${input.env}'
+      networks:
+        - name: '${WP-Network-Private.name}'
+          assignPublicIpAddress: true
+      remoteAccess:
+        authentication: usernamePassword
+        username: '${input.username}'
+        password: '${input.userpassword}'
+      cloudConfig: |
+        #cloud-config
+        repo_update: true
+        repo_upgrade: all
+
+        packages:
+         - mysql-server
+
+        runcmd:
+         - sed -e '/bind-address/ s/^#*/#/' -i /etc/mysql/mysql.conf.d/mysqld.cnf
+         - service mysql restart
+         - mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'mysqlpassword';"
+         - mysql -e "FLUSH PRIVILEGES;"
+      attachedDisks: []
+  WebTier:
+    type: Cloud.Machine
+    metadata:
+      layoutPosition:
+        - 0
+        - 1
+    properties:
+      name: wordpress
+      flavor: '${input.size}'
+      image: ubuntu-16
+      constraints:
+        - tag: '${input.env}'
+      networks:
+        - name: '${WP-Network-Private.name}'
+          assignPublicIpAddress: true
+      cloudConfig: |
+        #cloud-config
+        repo_update: true
+        repo_upgrade: all
+
+        packages:
+         - apache2
+         - php
+         - php-mysql
+         - libapache2-mod-php
+         - php-mcrypt
+         - mysql-client
+
+        runcmd:
+         - mkdir -p /var/www/html/mywordpresssite && cd /var/www/html && wget https://wordpress.org/latest.tar.gz && tar -xzf /var/www/html/latest.tar.gz -C /var/www/html/mywordpresssite --strip-components 1
+         - i=0; while [ $i -le 5 ]; do mysql --connect-timeout=3 -h ${DBTier.networks[0].address} -u root -pmysqlpassword -e "SHOW STATUS;" && break || sleep 15; i=$((i+1)); done
+         - mysql -u root -pmysqlpassword -h ${DBTier.networks[0].address} -e "create database wordpress_blog;"
+         - mv /var/www/html/mywordpresssite/wp-config-sample.php /var/www/html/mywordpresssite/wp-config.php
+         - sed -i -e s/"define( 'DB_NAME', 'database_name_here' );"/"define( 'DB_NAME', 'wordpress_blog' );"/ /var/www/html/mywordpresssite/wp-config.php && sed -i -e s/"define( 'DB_USER', 'username_here' );"/"define( 'DB_USER', 'root' );"/ /var/www/html/mywordpresssite/wp-config.php && sed -i -e s/"define( 'DB_PASSWORD', 'password_here' );"/"define( 'DB_PASSWORD', 'mysqlpassword' );"/ /var/www/html/mywordpresssite/wp-config.php && sed -i -e s/"define( 'DB_HOST', 'localhost' );"/"define( 'DB_HOST', '${DBTier.networks[0].address}' );"/ /var/www/html/mywordpresssite/wp-config.php
+         - service apache2 reload
+  WP-Network-Private:
+    type: Cloud.Network
+    metadata:
+      layoutPosition:
+        - 1
+        - 0
+    properties:
+      name: WP-Network-Private
+      networkType: existing
+      constraints:
+        - tag: 'type:isolated-net'
+        - tag: '${input.env}'

@@ -1,4 +1,5 @@
 formatVersion: 1
+name: Windows Server 2016 Blueprint
 inputs: {}
 resources:
   Cloud_Machine_1:

@@ -1,5 +1,6 @@
 formatVersion: 1
-name: Windows Server 2016 Blueprint
+name: Windows Server Agnostic
+version: 1
 inputs: {}
 resources:
   Cloud_Machine_1:

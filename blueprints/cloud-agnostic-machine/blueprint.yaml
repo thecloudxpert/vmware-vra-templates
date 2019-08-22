@@ -1,7 +1,14 @@
-formatVersion: 1
-name: Windows Server Agnostic
+name: Agnostic Single Machine Blueprint
 version: 1
-inputs: {}
+formatVersion: 1
+inputs: 
+  image:
+    type: string
+    enum:
+      - Windows Server 2016
+      - Windows Server 2012
+      - CentOS 7
+    title: Select Image/OS
 resources:
   Cloud_Machine_1:
     type: Cloud.Machine

@@ -1,5 +1,5 @@
 name: Agnostic Single Machine Blueprint
-version: 1
+version: 2
 formatVersion: 1
 inputs: 
   image:

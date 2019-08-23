@@ -13,7 +13,7 @@ resources:
   Cloud_Machine_1:
     type: Cloud.Machine
     properties:
-      image: Windows Server 2016
+      image: '${input.image}'
       flavor: Small
       networks:
         - network: '${resource.Cloud_Network_1.id}'

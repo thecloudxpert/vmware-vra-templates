@@ -1,0 +1,30 @@
+name: Windows Machine Blueprint
+version: 0.0.1
+formatVersion: 1
+inputs: 
+  image:
+    type: string
+    enum:
+      - Windows Server 2016
+      - Windows Server 2012
+    title: Select Image/OS to deploy
+  size:
+    type: string
+    enum:
+      - Small
+      - Medium
+      - Large 
+    title: Select a deployment size
+resources:
+  Cloud_Machine_1:
+    type: Cloud.Machine
+    properties:
+      image: '${input.image}'
+      flavor: '${input.size}'
+      networks:
+        - network: '${resource.Cloud_Network_1.id}'
+      attachedDisks: []
+  Cloud_Network_1:
+    type: Cloud.Network
+    properties:
+      networkType: existing

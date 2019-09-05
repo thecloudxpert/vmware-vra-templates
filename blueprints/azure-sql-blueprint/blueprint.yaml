@@ -1,4 +1,4 @@
-name: Azure cloud native MSSQL database
+name: Azure MSSQL database
 version: 0.0.1
 formatVersion: 1
 inputs:

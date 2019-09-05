@@ -1,44 +1,48 @@
 name: Azure MSSQL database
-version: 0.0.1
+version: 0.0.2
 formatVersion: 1
 inputs:
   resourceGroup:
     type: string
-    title: Resource Group
+    title: Enter Resource Group Name
+  sqlServerName:
+    type: string
+    title: Enter new SQL Server Name
+
 resources:
   Azure_ResourceGroup:
     type: Cloud.Azure.ResourceGroup
     properties:
       name: '${input.resourceGroup}'
-  Cloud_Service_Azure_SQL_Server_1:
+  Azure_SQL_Server:
     type: Cloud.Service.Azure.SQL.Server
     dependsOn:
       - Azure_ResourceGroup
     properties:
-      name: demo-sqlsrv
+      name: '${input.sqlServerName}'
       region: UK South
       account: Azure - VMware
       version: '12.0'
       administrator_login: sqladmin
       resource_group_name: '${resource.Azure_ResourceGroup.name}'
       administrator_login_password: VMware12345!
-  Cloud_Service_Azure_SQL_Database_1:
+  Azure_SQL_Database_1:
     type: Cloud.Service.Azure.SQL.Database
     dependsOn:
-      - Cloud_Service_Azure_SQL_Server_1
+      - Azure_SQL_Server
     properties:
       name: demo-db1
       region: UK South
       account: Azure - VMware
-      server_name: '${resource.Cloud_Service_Azure_SQL_Server_1.name}'
+      server_name: '${resource.Azure_SQL_Server.name}'
       resource_group_name: '${resource.Azure_ResourceGroup.name}'
-  Cloud_Service_Azure_SQL_Database_2:
+  Azure_SQL_Database_2:
     type: Cloud.Service.Azure.SQL.Database
     dependsOn:
-      - Cloud_Service_Azure_SQL_Server_1
+      - Azure_SQL_Server
     properties:
       name: demo-db2
       region: UK South
       account: Azure - VMware
-      server_name: '${resource.Cloud_Service_Azure_SQL_Server_1.name}'
+      server_name: '${resource.Azure_SQL_Server.name}'
       resource_group_name: '${resource.Azure_ResourceGroup.name}'

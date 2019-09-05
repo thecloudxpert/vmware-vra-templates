@@ -1,0 +1,44 @@
+name: Azure SQL Database
+version: 0.0.1
+formatVersion: 1
+inputs:
+  resourceGroup:
+    type: string
+    title: Resource Group
+resources:
+  Azure_ResourceGroup:
+    type: Cloud.Azure.ResourceGroup
+    properties:
+      name: '${input.resourceGroup}'
+  Cloud_Service_Azure_SQL_Server_1:
+    type: Cloud.Service.Azure.SQL.Server
+    dependsOn:
+      - Azure_ResourceGroup
+    properties:
+      name: demo-sqlsrv
+      region: UK South
+      account: Azure - VMware
+      version: '12.0'
+      administrator_login: sqladmin
+      resource_group_name: '${resource.Azure_ResourceGroup.name}'
+      administrator_login_password: VMware12345!
+  Cloud_Service_Azure_SQL_Database_1:
+    type: Cloud.Service.Azure.SQL.Database
+    dependsOn:
+      - Cloud_Service_Azure_SQL_Server_1
+    properties:
+      name: demo-db1
+      region: UK South
+      account: Azure - VMware
+      server_name: '${resource.Cloud_Service_Azure_SQL_Server_1.name}'
+      resource_group_name: '${resource.Azure_ResourceGroup.name}'
+  Cloud_Service_Azure_SQL_Database_2:
+    type: Cloud.Service.Azure.SQL.Database
+    dependsOn:
+      - Cloud_Service_Azure_SQL_Server_1
+    properties:
+      name: demo-db2
+      region: UK South
+      account: Azure - VMware
+      server_name: '${resource.Cloud_Service_Azure_SQL_Server_1.name}'
+      resource_group_name: '${resource.Azure_ResourceGroup.name}'

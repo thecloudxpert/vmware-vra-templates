@@ -1,5 +1,5 @@
-name: Azure MSSQL database
-version: 0.0.2
+name: Single MS Azure SQL database
+version: 0.0.1
 formatVersion: 1
 inputs:
   resourceGroup:
@@ -8,14 +8,17 @@ inputs:
   sqlServerName:
     type: string
     title: Enter new SQL Server Name
-
+  sqlServerDatabase:
+    type: string
+    title: Enter new SQL Database Name
 resources:
   Azure_ResourceGroup:
-    type: Cloud.Azure.ResourceGroup
+    type: Cloud.Service.Azure.ResourceGroup
     properties:
       name: '${input.resourceGroup}'
       resourceName: '${input.resourceGroup}'
       useExisting: false
+      
   Azure_SQL_Server:
     type: Cloud.Service.Azure.SQL.Server
     dependsOn:
@@ -26,25 +29,15 @@ resources:
       account: Azure - VMware
       version: '12.0'
       administrator_login: sqladmin
-      resource_group_name: '${resource.Azure_ResourceGroup.name}'
+      resource_group_name: '${resource.Azure_ResourceGroup.resourceName}'
       administrator_login_password: VMware12345!
   Azure_SQL_Database_1:
     type: Cloud.Service.Azure.SQL.Database
     dependsOn:
       - Azure_SQL_Server
     properties:
-      name: demo-db1
+      name: '${input.sqlServerDatabase}'
       region: UK South
       account: Azure - VMware
       server_name: '${resource.Azure_SQL_Server.name}'
-      resource_group_name: '${resource.Azure_ResourceGroup.name}'
-  Azure_SQL_Database_2:
-    type: Cloud.Service.Azure.SQL.Database
-    dependsOn:
-      - Azure_SQL_Server
-    properties:
-      name: demo-db2
-      region: UK South
-      account: Azure - VMware
-      server_name: '${resource.Azure_SQL_Server.name}'
-      resource_group_name: '${resource.Azure_ResourceGroup.name}'
+      resource_group_name: '${resource.Azure_ResourceGroup.resourceName}'

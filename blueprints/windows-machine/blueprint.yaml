@@ -19,6 +19,7 @@ resources:
   Cloud_Machine_1:
     type: Cloud.Machine
     properties:
+      resourceGroupName: 'Compute/VRA'
       image: '${input.image}'
       flavor: '${input.size}'
       networks:

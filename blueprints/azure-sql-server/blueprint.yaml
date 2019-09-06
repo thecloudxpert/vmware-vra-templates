@@ -1,0 +1,49 @@
+name: Single MS Azure SQL database
+version: 0.0.1
+formatVersion: 1
+inputs:
+  resourceGroup:
+    type: string
+    title: Azure Resource Group Name
+  sqlServerName:
+    type: string
+    title: SQL Server Name
+  sqlDatabaseName:
+    type: string
+    title: SQL Database Name
+  sqlAdminName:
+    type: string
+    title: Admin User Name
+  sqlAdminPassword:
+    type: string
+    title: Admin Password
+    encrypted: true
+resources:
+  Azure_ResourceGroup:
+    type: Cloud.Azure.ResourceGroup
+    properties:
+      name: '${input.resourceGroup}'
+      resourceName: '${input.resourceGroup}'
+      useExisting: false
+  Azure_SQL_Server:
+    type: Cloud.Service.Azure.SQL.Server
+    dependsOn:
+      - Azure_ResourceGroup
+    properties:
+      name: '${input.sqlServerName}'
+      region: UK South
+      account: Azure - VMware
+      version: '12.0'
+      administrator_login: '${input.sqlAdminName}'
+      resource_group_name: '${resource.Azure_ResourceGroup.resourceName}'
+      administrator_login_password: '${input.sqlAdminPassword}'
+  Azure_SQL_Database:
+    type: Cloud.Service.Azure.SQL.Database
+    dependsOn:
+      - Azure_SQL_Server
+    properties:
+      name: '${input.sqlDatabaseName}'
+      region: UK South
+      account: Azure - VMware
+      server_name: '${resource.Azure_SQL_Server.name}'
+      resource_group_name: '${resource.Azure_ResourceGroup.resourceName}'

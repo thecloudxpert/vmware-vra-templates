@@ -1,15 +1,8 @@
 name: Agnostic Single Machine Blueprint
-version: 0.0.1
+version: 0.0.2
 formatVersion: 1
 inputs: 
-  image:
-    type: string
-    enum:
-      - Windows Server 2016
-      - Windows Server 2012
-      - CentOS 7
-    title: Image
-  cloudendpoint:
+  cloud:
     type: string
     title: Cloud Endpoint
     oneOf:
@@ -20,6 +13,20 @@ inputs:
       - title: vSphere
         const: 'env:vsphere'
     default: 'env:vsphere'
+  image:
+    type: string
+    title: Image
+    enum:
+      - Windows Server 2016
+      - Windows Server 2012
+      - CentOS 7
+  size:
+    type: string
+    title: Size
+    enum:
+      - Small
+      - Medium
+      - Large
 resources:
   Cloud_Machine_1:
     type: Cloud.Machine
@@ -29,8 +36,9 @@ resources:
       networks:
         - network: '${resource.Cloud_Network_1.id}'
       attachedDisks: []
+      count: 1
     constraints:
-    - tag: '${input.cloudendpoint}'
+    - tag: '${input.cloud}'
   Cloud_Network_1:
     type: Cloud.Network
     properties:

@@ -8,7 +8,18 @@ inputs:
       - Windows Server 2016
       - Windows Server 2012
       - CentOS 7
-    title: Select Image/OS
+    title: Image
+  cloudendpoint:
+    type: string
+    title: Cloud Endpoint
+    oneOf:
+      - title: AWS
+        const: 'env:aws'
+      - title: Azure
+        const: 'env:azure'
+      - title: vSphere
+        const: 'env:vsphere'
+    default: 'env:vsphere'
 resources:
   Cloud_Machine_1:
     type: Cloud.Machine
@@ -18,6 +29,8 @@ resources:
       networks:
         - network: '${resource.Cloud_Network_1.id}'
       attachedDisks: []
+    constraints:
+    - tag: '${input.cloudendpoint}'
   Cloud_Network_1:
     type: Cloud.Network
     properties:

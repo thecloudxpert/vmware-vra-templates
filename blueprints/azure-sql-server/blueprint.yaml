@@ -30,8 +30,8 @@ resources:
       - Azure_ResourceGroup
     properties:
       name: '${input.sqlServerName}'
-      region: Azure Region
-      account: Azure Account
+      region: UK South
+      account: Azure - VMware
       version: '12.0'
       administrator_login: '${input.sqlAdminName}'
       resource_group_name: '${resource.Azure_ResourceGroup.resourceName}'
@@ -42,7 +42,7 @@ resources:
       - Azure_SQL_Server
     properties:
       name: '${input.sqlDatabaseName}'
-      region: Azure Region
-      account: Azure Account
+      region: UK South
+      account: Azure - VMware
       server_name: '${resource.Azure_SQL_Server.name}'
       resource_group_name: '${resource.Azure_ResourceGroup.resourceName}'

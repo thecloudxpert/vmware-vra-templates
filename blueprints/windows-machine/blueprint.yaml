@@ -4,22 +4,24 @@ formatVersion: 1
 inputs: 
   image:
     type: string
+    title: Image
     enum:
       - Windows Server 2016
       - Windows Server 2012
-    title: Select Image/OS to deploy
+      - CentOS 7
+    default: Windows Server 2016
   size:
     type: string
+    title: Size
     enum:
       - Small
       - Medium
       - Large 
-    title: Select a deployment size
+    default: Small
 resources:
   Cloud_Machine_1:
     type: Cloud.Machine
     properties:
-      resourceGroupName: 'Compute/VRA'
       image: '${input.image}'
       flavor: '${input.size}'
       networks:

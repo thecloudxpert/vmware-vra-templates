@@ -8,7 +8,6 @@ inputs:
     enum:
       - Windows Server 2016
       - Windows Server 2012
-      - CentOS 7
     default: Windows Server 2016
   size:
     type: string

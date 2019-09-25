@@ -1,5 +1,5 @@
 name: Single MS Azure SQL database
-version: 1.0.0
+version: 1.0.1
 formatVersion: 1
 inputs:
   resourceGroup:

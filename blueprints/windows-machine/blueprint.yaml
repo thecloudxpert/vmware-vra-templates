@@ -7,7 +7,7 @@ inputs:
     title: Image
     enum:
       - Windows Server 2016
-      - Windows Server 2012
+      - Windows Server 2012 R2
     default: Windows Server 2016
   size:
     type: string

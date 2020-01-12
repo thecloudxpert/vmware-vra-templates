@@ -12,7 +12,6 @@ inputs:
     enum:
       - Windows Server 2016
       - Windows Server 2012 R2
-      - CentOS 7.5
   size:
     type: string
     title: Size

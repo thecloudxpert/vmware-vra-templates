@@ -22,7 +22,7 @@ resources:
   Azure_ResourceGroup:
     type: Cloud.Azure.ResourceGroup
     properties:
-      name: '${input.resourceGroup}'
+      name: '${replace(env.projectName," ","-")}'
       useExisting: false
   Azure_SQL_Server:
     type: Cloud.Service.Azure.SQL.Server

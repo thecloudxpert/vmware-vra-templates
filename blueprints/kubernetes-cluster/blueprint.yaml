@@ -1,0 +1,193 @@
+name: Kubernetes Cluster
+version: 1.0.0
+formatVersion: 1
+name: K8s
+version: 1
+description: Description
+inputs:
+  network:
+    type: string
+    title: Network Capability tag
+  region:
+    type: string
+    description: Region
+    title: Region Capability Tag
+  no_of_nodes:
+    type: integer
+    description: Number of kubernetes nodes to be created for the Cluster setup
+    title: Number of kubernetes nodes
+resources:
+  K8s_Node:
+    type: Cloud.Machine
+    properties:
+      name: k8s_node
+      flavor: small
+      image: Ubuntu
+      count: '${input.no_of_nodes}'
+      cloudConfig: |
+        #cloudconfig
+        repo_update: true
+        repo_upgrade: all
+        package_update: true
+        package_upgrade: all
+        packages:
+         - wget
+         - sshpass
+        runcmd:
+         - echo root:changeme|sudo chpasswd
+         - sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g'  /etc/ssh/sshd_config
+         - sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/g'  /etc/ssh/sshd_config
+         - service sshd restart
+         - cd /root
+         - FILE="/root/checkHostName.sh"
+         - /bin/cat <<EOM >$FILE
+         - node_ip=\`host myip.opendns.com resolver1.opendns.com | grep "myip.opendns.com has" | awk '{print \$4}'\`
+         - if [ \$node_ip ]
+         - then
+         - echo \$node_ip > /root/privateOrpublic.txt
+         - else
+         - node_ip=\`ifconfig \$(route | grep '^default' | grep -o '[^ ]*\$') | grep 'inet addr' | cut -d ':' -f 2 | cut -d ' ' -f 1\`
+         - echo \$node_ip > /root/privateOrpublic.txt
+         - ip=\`dig -x \$node_ip +short\`
+         - host_name=\$(basename \$ip .)
+         - echo \$host_name > /etc/hostname
+         - hostnamectl set-hostname \$host_name
+         - fi
+         - EOM
+         - chmod +x /root/checkHostName.sh
+         - sudo bash /root/checkHostName.sh
+         - cd /root
+         - FILE="/root/slave_node.sh"
+         - /bin/cat <<EOM >$FILE
+         - apt-get update -y
+         - node_host=`hostname`
+         - echo \$node_host >> /root/hostname.txt
+         - echo "\$(ifconfig $(route | grep '^default' | grep -o '[^ ]*$') | grep "inet addr" | cut -d ':' -f 2 | cut -d ' ' -f 1) \$node_host" >> /root/Node.txt
+         - swapoff -a
+         - apt-get install apt-transport-https ca-certificates curl software-properties-common -y
+         - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+         - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+         - apt-get update -y
+         - apt-get install docker-ce -y
+         - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+         - echo 'deb http://apt.kubernetes.io/ kubernetes-xenial main' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+         - apt-get update -y
+         - apt-get install kubelet kubeadm kubectl -y
+         - EOM
+         - chmod +x /root/slave_node.sh
+         - sudo bash /root/slave_node.sh
+      networks:
+        - name: '${resource.K8s_Network.name}'
+          network: '${resource.K8s_Network.id}'
+      constraints:
+        - tag: '${input.region}'
+  K8s_Master:
+    type: Cloud.Machine
+    properties:
+      name: k8s_master
+      flavor: Medium
+      image: Ubuntu
+      cloudConfig: |
+        #cloudconfig
+        repo_update: true
+        repo_upgrade: all
+        package_update: true
+        package_upgrade: all
+        packages:
+         - wget
+         - sshpass
+        runcmd:
+         - echo root:changeme|sudo chpasswd
+         - sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g'  /etc/ssh/sshd_config
+         - sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/g'  /etc/ssh/sshd_config
+         - service sshd restart
+         - cd /root
+         - FILE="/root/checkHostName.sh"
+         - /bin/cat <<EOM >$FILE
+         - node_ip=\`host myip.opendns.com resolver1.opendns.com | grep "myip.opendns.com has" | awk '{print \$4}'\`
+         - if [ \$node_ip ]
+         - then
+         - echo \$node_ip > /root/privateOrpublic.txt
+         - else
+         - node_ip=\`ifconfig \$(route | grep '^default' | grep -o '[^ ]*\$') | grep 'inet addr' | cut -d ':' -f 2 | cut -d ' ' -f 1\`
+         - echo \$node_ip > /root/privateOrpublic.txt
+         - ip=\`dig -x \$node_ip +short\`
+         - host_name=\$(basename \$ip .)
+         - echo \$host_name > /etc/hostname
+         - hostnamectl set-hostname \$host_name
+         - fi
+         - EOM
+         - chmod +x /root/checkHostName.sh
+         - sudo bash /root/checkHostName.sh
+         - cd /root
+         - FILE="/root/master_node.sh"
+         - /bin/cat <<EOM >$FILE
+         - apt-get update -y
+         - master_host=`hostname`
+         - echo "$(ifconfig $(route | grep '^default' | grep -o '[^ ]*$') | grep "inet addr" | cut -d ':' -f 2 | cut -d ' ' -f 1) \$master_host" >> /root/Master.txt
+         - cat /root/Master.txt >> /root/AllIps.txt
+         - echo ${resource.K8s_Node.address} >> /root/slave_node_addresses.txt
+         - sed -i 's/\[//g' /root/slave_node_addresses.txt
+         - sed -i 's/\]//g' /root/slave_node_addresses.txt
+         - value=\`cat /root/slave_node_addresses.txt\`
+         - arr=\$(echo \$value | tr "," "\n")
+         - var=1
+         - master_hostname=`hostname`
+         - for node in \$arr
+         - do
+         - sshpass -p 'changeme' scp -o StrictHostKeyChecking=no root@\$node:/root/Node.txt /root/Node\$var.txt
+         - cat /root/Node\$var.txt >> /root/AllIps.txt
+         - var=\$((var+1))
+         - done
+         - cat /root/AllIps.txt >> /etc/hosts
+         - value=\`cat /root/slave_node_addresses.txt\`
+         - arr=\$(echo \$value | tr "," "\n")
+         - for node in \$arr
+         - do
+         - sshpass -p 'changeme' scp -o StrictHostKeyChecking=no /root/AllIps.txt root@\$node:/root/AllIps.txt
+         - sshpass -p 'changeme' ssh -o StrictHostKeyChecking=no root@\$node 'cat /root/AllIps.txt >> /etc/hosts'
+         - done
+         - swapoff -a
+         - apt-get install apt-transport-https ca-certificates curl software-properties-common -y
+         - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+         - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+         - apt-get update -y
+         - apt-get install docker-ce -y
+         - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+         - echo 'deb http://apt.kubernetes.io/ kubernetes-xenial main' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+         - apt-get update -y
+         - apt-get install kubelet kubeadm kubectl -y
+         - kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=\`cat /root/privateOrpublic.txt\`
+         - mkdir -p \$HOME/.kube
+         - sudo cp -i /etc/kubernetes/admin.conf \$HOME/.kube/config
+         - sudo chown \$(id -u):\$(id -g) \$HOME/.kube/config
+         - kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+         - curl https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard.yaml >> /etc/kubernetes/manifests/kubernetes-dashboard.yaml
+         - kubectl apply -f /etc/kubernetes/manifests/kubernetes-dashboard.yaml
+         - joincommand=\`kubeadm token create --print-join-command\`
+         - echo \$joincommand >> /root/joincommand.sh
+         - value=\`cat /root/slave_node_addresses.txt\`
+         - arr=\$(echo \$value | tr "," "\n")
+         - for node in \$arr
+         - do
+         - sshpass -p 'changeme' scp -o StrictHostKeyChecking=no /root/joincommand.sh root@\$node:/root/joincommand.sh
+         - sshpass -p 'changeme' ssh -o StrictHostKeyChecking=no root@\$node 'chmod +x /root/joincommand.sh'
+         - sshpass -p 'changeme' ssh -o StrictHostKeyChecking=no root@\$node 'sudo bash /root/joincommand.sh'
+         - done
+         - kubectl run hello-world-2 --replicas=2 --labels="run=load-balancer-example-2" --image=gcr.io/google-samples/node-hello:1.0  --port=8080
+         - kubectl expose deployment hello-world-2 --type="LoadBalancer" --name="hello-world-svc"
+         - EOM
+         - chmod +x /root/master_node.sh
+         - sudo bash /root/master_node.sh
+      networks:
+        - name: '${resource.K8s_Network.name}'
+          network: '${resource.K8s_Network.id}'
+      constraints:
+        - tag: '${input.region}'
+  K8s_Network:
+    type: Cloud.Network
+    properties:
+      name: K8s_Network
+      networkType: existing
+      constraints:
+        - tag: '${input.network}:soft'

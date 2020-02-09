@@ -187,4 +187,4 @@ resources:
       name: K8s_Network
       networkType: existing
       constraints:
-        - tag: '${input.network}:soft'
+        - tag: '${input.network}'

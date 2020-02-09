@@ -1,9 +1,6 @@
 name: Kubernetes Cluster
 version: 1.0.0
 formatVersion: 1
-name: K8s
-version: 1
-description: Description
 inputs:
   network:
     type: string

@@ -1,18 +1,7 @@
-name: Azure Virtual Machine Blueprint
-version: 0.0.1
+name: Azure Virtual Machine
+version: 1.0.0
 formatVersion: 1
 inputs:
-  hostName:
-    type: string
-    title: Host Name
-    maxLength: 8
-  image:
-    type: string
-    title: Image
-    enum:
-      - Windows Server 2019
-      - Windows Server 2016
-      - Windows Server 2012 R2
   size:
     type: string
     title: Size
@@ -20,6 +9,15 @@ inputs:
       - Small
       - Medium
       - Large
+  image:
+    type: string
+    title: Image
+    enum:
+      - Windows Server 2019
+      - Windows Server 2016
+      - Windows Server 2012 R2
+    default: Windows Server 2019
+    format: null
 resources:
   Cloud_Azure_ResourceGroup_1:
     type: Cloud.Azure.ResourceGroup
@@ -31,7 +29,6 @@ resources:
     properties:
       image: '${input.image}'
       flavor: '${input.size}'
-      name: '${input.hostName}'
       networks:
         - network: '${resource.Cloud_Network_1.id}'
       attachedDisks: []

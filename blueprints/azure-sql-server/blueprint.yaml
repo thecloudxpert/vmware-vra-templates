@@ -5,6 +5,17 @@ inputs:
   resourceGroup:
     type: string
     title: Azure Resource Group Name
+  sqlVersion:
+    type: string
+    title: SQL Server Version
+    oneOf:
+      - title: SQL Server 2014
+        const: '12.0'
+      - title: SQL Server 2016
+        const: '13.0'
+      - title: SQL Server 2017
+        const: '14.0'
+    default: '12.0'
   sqlServerName:
     type: string
     title: SQL Server Name
@@ -18,6 +29,7 @@ inputs:
     type: string
     title: Admin Password
     encrypted: true
+  
 resources:
   Azure_ResourceGroup:
     type: Cloud.Azure.ResourceGroup
@@ -31,8 +43,8 @@ resources:
     properties:
       name: '${input.sqlServerName}'
       region: UK South
-      account: Azure - VMware
-      version: '12.0'
+      account: Azure -Demo
+      version: '${input.sqlVersion}'
       administrator_login: '${input.sqlAdminName}'
       resource_group_name: '${resource.Azure_ResourceGroup.resourceName}'
       administrator_login_password: '${input.sqlAdminPassword}'
@@ -43,6 +55,6 @@ resources:
     properties:
       name: '${input.sqlDatabaseName}'
       region: UK South
-      account: Azure - VMware
+      account: Azure
       server_name: '${resource.Azure_SQL_Server.name}'
       resource_group_name: '${resource.Azure_ResourceGroup.resourceName}'

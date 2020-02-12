@@ -43,7 +43,7 @@ resources:
     properties:
       name: '${input.sqlServerName}'
       region: UK South
-      account: Azure -Demo
+      account: Azure
       version: '${input.sqlVersion}'
       administrator_login: '${input.sqlAdminName}'
       resource_group_name: '${resource.Azure_ResourceGroup.resourceName}'

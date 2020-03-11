@@ -1,0 +1,58 @@
+name: Azure Virtual Machine - Outbound Network
+version: 1.0.0
+formatVersion: 1
+inputs:
+  hostname:
+    type: string
+    title: Servername
+  size:
+    type: string
+    title: Size
+    enum:
+      - Small
+      - Medium
+      - Large
+    default: Small
+  image:
+    type: string
+    title: Image
+    enum:
+      - Windows Server 2019
+      - Windows Server 2016
+      - Windows Server 2012 R2
+    default: Windows Server 2019
+    format: null
+  service:
+    type: string
+    title: Service Tier
+    oneOf:
+      - title: Bronze
+        const: 'service:bronze'
+      - title: Gold
+        const: 'service:gold'
+      - title: Platinum
+        const: 'service:platinum'
+    default: 'service:bronze'
+resources:
+  Cloud_Azure_ResourceGroup_1:
+    type: Cloud.Azure.ResourceGroup
+    properties:
+      name: '${replace(env.projectName," ","-")}'
+      useExisting: false
+  Cloud_Azure_Machine_1:
+    type: Cloud.Azure.Machine
+    properties:
+      name: '${input.hostname}'
+      image: '${input.image}'
+      flavor: '${input.size}'
+      networks:
+        - network: '${resource.Cloud_Network_1.id}'
+      attachedDisks: []
+      storage: null
+      resourceGroupName: '${resource.Cloud_Azure_ResourceGroup_1.resourceName}'
+      constraints:
+        - tag: '${input.service}'
+  Cloud_Network_1:
+    type: Cloud.Network
+    properties:
+      networkType: outbound

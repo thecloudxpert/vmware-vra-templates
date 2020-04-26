@@ -15,7 +15,7 @@ inputs:
         const: '13.0'
       - title: SQL Server 2017 (14.0)
         const: '14.0'
-    default: '12.0'
+    default: '13.0'
   sqlServerName:
     type: string
     title: SQL Server Name

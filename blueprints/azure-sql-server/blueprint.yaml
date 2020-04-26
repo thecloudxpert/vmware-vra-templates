@@ -9,11 +9,11 @@ inputs:
     type: string
     title: SQL Server Version
     oneOf:
-      - title: SQL Server 2014
+      - title: SQL Server 2014 (12.0)
         const: '12.0'
-      - title: SQL Server 2016
+      - title: SQL Server 2016 (13.0)
         const: '13.0'
-      - title: SQL Server 2017
+      - title: SQL Server 2017 (14.0)
         const: '14.0'
     default: '12.0'
   sqlServerName:

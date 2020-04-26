@@ -29,7 +29,6 @@ inputs:
     type: string
     title: Admin Password
     encrypted: true
-  
 resources:
   Azure_ResourceGroup:
     type: Cloud.Azure.ResourceGroup

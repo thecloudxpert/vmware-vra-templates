@@ -1,1 +1,14 @@
-sds
+formatVersion: 1
+inputs: {}
+resources:
+  Cloud_Machine_1:
+    type: Cloud.Machine
+    properties:
+      image: 'linux'
+      flavor: 'small'
+      networks:
+        - network: '${resource.Cloud_Network_1.id}'
+  Cloud_Network_1:
+    type: Cloud.Network
+    properties:
+      networkType: existing

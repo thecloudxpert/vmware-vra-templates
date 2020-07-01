@@ -1,0 +1,41 @@
+name: Active Directory User
+version: 1.0.0
+formatVersion: 1
+inputs:
+  firstName:
+    type: string
+    title: First Name
+  lastName:
+    type: string
+    title: Last Name
+  displayName:
+    type: string
+    title: Last Name
+  accountName:
+    type: string
+    title: Account Name
+  changePassword:
+    type: boolean
+    title: Change On Next Logon
+  ouContainer:
+    type: object
+    title: AD OU
+    $data: 'vro/data/inventory/AD:OrganizationalUnit'
+    properties:
+      id:
+        type: string
+      type:
+        type: string
+  password:
+    type: string
+    title: Password
+    encrypted: true
+resources:
+  Custom_AD_User_1:
+    type: Custom.AD.User
+    properties:
+      accountName: '${input.accountName}'
+      displayName: '${input.displayName}'
+      ouContainer: '${input.ouContainer}'
+      password: '${input.password}'
+      changePasswordAtNextLogon: '${input.changePassword}'

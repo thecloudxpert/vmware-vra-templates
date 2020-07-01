@@ -1,5 +1,5 @@
 name: Agnostic Single Machine
-version: 0.0.2
+version: 0.0.3
 formatVersion: 1
 inputs: 
   cloud:
@@ -18,7 +18,7 @@ inputs:
     title: Image
     enum:
       - Windows Server 2016
-      - Windows Server 2012
+      - Windows Server 2012 R2
       - CentOS 7
   size:
     type: string

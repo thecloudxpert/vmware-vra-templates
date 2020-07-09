@@ -11,9 +11,9 @@ inputs:
     type: string
     pattern: '[a-z0-9A-Z@#$]+'
     encrypted: true
-    default: vRealiz3!
+    default: VMware1!
     title: Admin Account Password
-    description: The password you would like to use for the ocuser account.
+    description: The password you would like to use for the user account.
 resources:
   windowsserver:
     type: Cloud.Machine

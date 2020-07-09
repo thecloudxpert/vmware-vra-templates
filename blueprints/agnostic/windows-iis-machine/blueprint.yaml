@@ -1,0 +1,42 @@
+name: Windows-IIS-Machine
+version: 1
+formatVersion: 1
+inputs:
+  user:
+    type: string
+    title: Username for SSH
+    description: The username you would like to usee for admin.
+    default: Administrator
+  password:
+    type: string
+    pattern: '[a-z0-9A-Z@#$]+'
+    encrypted: true
+    default: vRealiz3!
+    title: Admin Account Password
+    description: The password you would like to use for the ocuser account.
+resources:
+  windowsserver:
+    type: Cloud.Machine
+    properties:
+      image: Windows-16
+      flavor: large
+      remoteAccess:
+        authentication: usernamePassword
+        username: '${input.user}'
+        password: '${input.password}'
+      cloudConfig: |
+        #ps1_sysnative
+          New-Item $env:SystemDrive\powershell_multipart.txt -type file -ErrorAction SilentlyContinue
+          Install-WindowsFeature -name Web-Server -IncludeManagementTools
+      constraints:
+        - tag: 'env:vsphere'
+      networks:
+        - name: '${resource.Cloud_Network_1.name}'
+          network: '${resource.Cloud_Network_1.id}'
+  Cloud_Network_1:
+    type: Cloud.Network
+    properties:
+      name: Field-Demo
+      networkType: existing
+      constraints:
+        - tag: 'env:vsphere'

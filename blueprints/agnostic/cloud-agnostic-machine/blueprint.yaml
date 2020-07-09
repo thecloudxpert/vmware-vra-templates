@@ -1,5 +1,5 @@
 name: Agnostic Single Machine
-version: 0.0.3
+version: 0.0.4
 formatVersion: 1
 inputs: 
   cloud:
@@ -19,7 +19,7 @@ inputs:
     enum:
       - Windows Server 2016
       - Windows Server 2012 R2
-      - CentOS 7
+      - CentOS 7.5
   size:
     type: string
     title: Size
@@ -33,7 +33,7 @@ resources:
     type: Cloud.Machine
     properties:
       image: '${input.image}'
-      flavor: Small
+      flavor: '${input.size}'
       networks:
         - network: '${resource.Cloud_Network_1.id}'
       attachedDisks: []

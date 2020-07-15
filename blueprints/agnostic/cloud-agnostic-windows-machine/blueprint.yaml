@@ -1,5 +1,5 @@
 name: Cloud Agnostic Windows Machine
-version: 0.0.2
+version: 0.0.3
 formatVersion: 1
 inputs: 
   image:
@@ -8,7 +8,6 @@ inputs:
     enum:
       - Windows Server 2016
       - Windows Server 2012 R2
-      - Windows Server 2019 
     default: Windows Server 2016
   size:
     type: string

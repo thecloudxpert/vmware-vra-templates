@@ -101,7 +101,7 @@ resources:
           
         final_message: "This system is finally up after $UPTIME seconds."
 
-    Cloud_Network_1:
+  Cloud_Network_1:
     type: Cloud.Network
     properties:
       networkType: existing

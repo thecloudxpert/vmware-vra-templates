@@ -1,0 +1,109 @@
+name: Docker Host Machine
+version: 0.0.1
+formatVersion: 1
+inputs:
+  image:
+    type: string
+    enum:
+      - CentOS 8
+      - CentOS 7
+    default: CentOS 8
+    title: Image
+  size:
+    type: string
+    enum:
+      - Small
+      - Medium
+      - Large
+      - Extra Large
+    default: Small
+    title: Size
+  hostname:
+    type: string
+    default: docker
+    format: hidden
+  username:
+    type: string
+    default: docker
+    format: hidden
+  password:
+    type: string
+    default: VMware1!
+    format: hidden
+    encrypted: true
+  domain:
+    type: string
+    default: thecloudxpert.local
+    format: hidden
+resources:
+  Cloud_Machine_1:
+    type: Cloud.Machine
+    properties:
+      name: '${input.hostname}'
+      fqdn: '${input.hostname + "." + input.domain}'
+      image: '${input.image}'
+      flavor: '${input.size}'
+      remoteAccess:
+        authentication: usernamePassword
+        username: root
+        password: VMware1!
+      networks:
+        - network: '${resource.Cloud_Network_1.id}'
+          assignment: dynamic
+      attachedDisks: []
+      cloudConfig: |
+        #cloudconfig
+        
+        output: {all: '| tee -a /var/log/cloud-init-output.log'}
+        
+        preserve_hostname: false
+        fqdn: ${input.hostname + "." + input.domain}
+        hostname: ${input.hostname}
+
+        manage_resolve_conf: true
+        resolv_conf:
+          nameservers:
+            - 172.16.10.51
+            - 172.16.10.52
+          searchdomains:
+            - ${input.domain}
+          domain: ${input.domain}
+
+        repo_update: true
+        repo_upgrade: all
+        package_update: true
+        package_upgrade: all
+        packages:
+          - yum-utils
+
+        users:
+          - name: ${input.username}
+            groups: sudo
+            sudo: ALL=(ALL) NOPASSWD:ALL
+            shell: /bin/bash
+
+        runcmd:
+          - USER=${input.username}
+          - PASS=${input.password}
+          - echo $USER:$PASS | /usr/sbin/chpasswd
+          - sudo timedatectl set-timezone UTC
+          - sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
+          - sed -i "s/#MaxSessions 10/MaxSessions 50/g" /etc/ssh/sshd_config
+          - service sshd reload
+          - yum install -y https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.2.6-3.3.el7.x86_64.rpm
+          - yum-config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+          - yum update -y
+          - yum install docker-ce docker-ce-cli -y
+          - usermod -aG docker ${input.username}
+          - su - ${input.username}
+          - systemctl enable docker
+          - systemctl start docker
+          
+        final_message: "This system is finally up after $UPTIME seconds."
+
+    Cloud_Network_1:
+    type: Cloud.Network
+    properties:
+      networkType: existing
+      constraints:
+        - tag: 'net:dhcp'

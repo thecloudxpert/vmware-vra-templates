@@ -1,0 +1,74 @@
+name: Web Application
+version: 0.0.1
+formatVersion: 1
+inputs: {}
+resources:
+  backend:
+    type: Cloud.NSX.Network
+    properties:
+        networkType: private
+        properties:
+          constraints: 
+              - tag: net:ondemand
+  webLb:
+    type: Cloud.NSX.LoadBalancer
+    properties:
+      routes: []
+      network: '${resource.frontend.id}'
+      instances: '${resource.webServer[*].id}'
+  webServer:
+    type: Cloud.vSphere.Machine
+    properties:
+      image: CentOS
+      flavor: small
+      count: 2
+      networks:
+        - network: '${resource.backend.id}'
+          securityGroups:
+            - '${resource.allowHTTPS.id}'
+            - '${resource.allowSSH.id}'
+  dbServer:
+    type: Cloud.vSphere.Machine
+    properties:
+      image: CentOS
+      flavor: small
+      networks:
+        - network: '${resource.backend.id}'
+          securityGroups:
+            - '${resource.allowSSH.id}'
+  allowHTTPS:
+    type: Cloud.SecurityGroup
+    properties:
+      securityGroupType: new
+      rules:
+        - name: Any-Web-HTTPS-443
+          source: Any
+          ports: 443
+          service: HTTPS
+          direction: inbound
+          access: Allow
+        - name: Any-Web-HTTP-80
+          source: Any
+          ports: 80
+          service: HTTP
+          direction: inbound
+          access: Allow
+  allowSSH:
+    type: Cloud.SecurityGroup
+    properties:
+      securityGroupType: new
+      rules:
+        - name: Any-Web-SSH-22
+          source: Any
+          protocol: TCP
+          ports: 22
+          service: SSH
+          direction: inbound
+          access: Allow
+  frontend:
+    type: Cloud.NSX.Network
+    properties:
+      networkType: routed
+      properties:
+        constraints: 
+            - tag: net:ondemand

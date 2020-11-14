@@ -1,0 +1,75 @@
+formatVersion: 1
+inputs:
+  size:
+    type: string
+    enum:
+      - small
+      - medium
+      - large
+    default: small
+  image:
+    type: string
+    default: Ubuntu-18
+  username:
+    type: string
+    default: demo
+  password:
+    type: string
+    encrypted: true
+  web1Hostname:
+    type: string
+resources:
+  Cloud_NSX_LoadBalancer_1:
+    type: Cloud.NSX.LoadBalancer
+    properties:
+      routes:
+        - protocol: HTTP
+          port: 80
+          instanceProtocol: HTTP
+          instancePort: 80
+        - protocol: HTTPS
+          port: 443
+          instanceProtocol: HTTPS
+          instancePort: 443
+      network: '${resource.Cloud_NSX_Network_1.id}'
+      instances:
+        - '${resource.webServer1.id}'
+  webServer1:
+    type: Cloud.vSphere.Machine
+    properties:
+      image: '${input.image}'
+      flavor: '${input.size}'
+      name: '${to_lower(input.web1Hostname)}'
+      networks:
+        - network: '${resource.Cloud_NSX_Network_1.id}'
+      cloudConfig: |
+        hostname: ${input.web2Hostname}
+        packages:
+          - apache2
+
+        users:
+          - name: ${input.username}
+            sudo: ['ALL=(ALL) NOPASSWD:ALL']
+            groups: sudo
+            shell: /bin/bash
+
+        runcmd:
+          - USER=${input.username}
+          - PASS=${input.password}
+          - echo $USER:$PASS | /usr/sbin/chpasswd 
+          - sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
+          - service ssh reload
+          - echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+          - sudo ufw allow Apache
+          - sudo ufw allow 'Apache Secure'
+          - sudo ufw allow OpenSSH
+          - sudo ufw enable
+          - sudo ufw reload
+          - sudo apt upgrade -y
+
+  Cloud_NSX_Network_1:
+    type: Cloud.NSX.Network
+    properties:
+      networkType: existing
+      constraints:
+        - tag: 'env:vsphere'

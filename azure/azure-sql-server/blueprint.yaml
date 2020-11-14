@@ -30,9 +30,9 @@ resources:
       - Azure_ResourceGroup
     properties:
       name: '${input.sqlServerName}'
-      region: 'null'
-      account: 'null'
-      version: 12.0
+      region: UK South
+      account: Azure
+      version: '12.0'
       administrator_login: '${input.sqlAdminName}'
       resource_group_name: '${resource.Azure_ResourceGroup.resourceName}'
       administrator_login_password: '${input.sqlAdminPassword}'
@@ -42,7 +42,7 @@ resources:
       - Azure_SQL_Server
     properties:
       name: '${input.sqlDatabaseName}'
-      region: 'null'
-      account: 'null'
+      region: UK South
+      account: Azure
       server_name: '${resource.Azure_SQL_Server.name}'
       resource_group_name: '${resource.Azure_ResourceGroup.resourceName}'

@@ -1,0 +1,129 @@
+formatVersion: 1
+inputs:
+  size:
+    type: string
+    enum:
+      - small
+      - medium
+      - large
+    default: small
+  image:
+    type: string
+    default: Ubuntu-18
+  username:
+    type: string
+    default: demo
+  password:
+    type: string
+    encrypted: true
+  web1Hostname:
+    type: string
+    default: web
+  web2Hostname:
+    type: string
+    default: web
+resources:
+  webLB:
+    type: Cloud.NSX.LoadBalancer
+    properties:
+      routes:
+        - protocol: HTTP
+          port: 80
+          instanceProtocol: HTTP
+          instancePort: 80
+        - protocol: HTTPS
+          port: 443
+          instanceProtocol: HTTPS
+          instancePort: 443
+      network: '${resource.webNetwork.id}'
+      instances:
+        - '${resource.webServer1.id}'
+        - '${resource.webServer2.id}'
+  webServer1:
+    type: Cloud.vSphere.Machine
+    properties:
+      image: '${input.image}'
+      flavor: '${input.size}'
+      name: '${to_lower(input.web1Hostname)}'
+      networks:
+        - network: '${resource.webNetwork.id}'
+      cloudConfig: |
+        hostname: ${input.web1Hostname}
+        packages:
+          - apache2
+          - git
+
+        users:
+          - name: ${input.username}
+            sudo: ['ALL=(ALL) NOPASSWD:ALL']
+            groups: sudo
+            shell: /bin/bash
+
+        write_files:
+          - path: /etc/hosts
+            content: 127.0.0.1 ${self.resourceName}
+            append: true
+            
+        runcmd:
+          - USER=${input.username}
+          - PASS=${input.password}
+          - echo $USER:$PASS | /usr/sbin/chpasswd 
+          - sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
+          - service ssh reload
+          - echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+          - ufw allow Apache
+          - ufw allow 'Apache Secure'
+          - ufw allow OpenSSH
+          - ufw enable
+          - ufw reload
+          - mkdir /var/www/edutech
+          - cd /tmp
+          - git clone https://github.com/thecloudxpert/demo-web-app.git /tmp/edutech
+          - mv /tmp/edutech/config/edutech.conf /etc/apache2/sites-available/edutech.conf
+          - mv /tmp/edutech /var/www/edutech/
+          - chown -R www-data.www-data /var/www/edutech
+          - chmod -R 775 /var/www/edutech
+          - cd /etc/apache2/sites-available/
+          - a2ensite edutech.conf
+          - a2dissite 000-default.conf
+          - systemctl reload apache2
+          - systemctl restart apache2
+  #          - apt upgrade -y
+  webServer2:
+    type: Cloud.vSphere.Machine
+    properties:
+      image: '${input.image}'
+      flavor: '${input.size}'
+      name: '${to_lower(input.web2Hostname)}'
+      networks:
+        - network: '${resource.webNetwork.id}'
+      cloudConfig: |
+        hostname: ${input.web2Hostname}
+        packages:
+          - apache2
+
+        users:
+          - name: ${input.username}
+            sudo: ['ALL=(ALL) NOPASSWD:ALL']
+            groups: sudo
+            shell: /bin/bash
+
+        runcmd:
+          - USER=${input.username}
+          - PASS=${input.password}
+          - echo $USER:$PASS | /usr/sbin/chpasswd 
+          - sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
+          - service ssh reload
+          - echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+          - sudo ufw allow Apache
+          - sudo ufw allow 'Apache Secure'
+          - sudo ufw allow OpenSSH
+          - sudo ufw enable
+          - sudo ufw reload
+          - sudo apt upgrade -y
+  webNetwork:
+    type: Cloud.NSX.Network
+    properties:
+      networkType: existing
+      constraints:
+        - tag: 'env:vsphere'

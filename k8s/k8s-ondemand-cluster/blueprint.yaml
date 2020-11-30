@@ -1,0 +1,34 @@
+name: K8S On-Demand Cluster
+version: 1.0
+formatVersion: 1
+inputs:
+  clusterName:
+    title: Cluster Name
+    type: string
+    description: 'This is the cluster name. It should NOT contain spaces, only dashes (ex. pks-dev-cluster)'
+    default: CHANGE-ME-NO-SPACES
+    pattern: '[a-zA-Z0-9\-]+'
+  clusterHostname:
+    title: Master Node Hostname
+    type: string
+    description: This is the DNS name for the Master Node in the cluster (ex. test.pks.domain.local).
+    pattern: '[a-zA-Z0-9\-]+'
+  clusterPort:
+    type: integer
+    default: 8443
+  numWorkers:
+    type: integer
+    default: 3
+    maximum: 5
+    minimum: 1
+resources:
+  Cloud_K8S_Cluster_1:
+    type: Cloud.K8S.Cluster
+    properties:
+      # This is the cluster name. It should NOT contain spaces, only dashes (ex. pks-dev-cluster)
+      name: '${input.clusterName}'
+      # This is the DNS name for the cluster (ex. test.pks.domain.local). You will access the cluster through IP not DNS currently.
+      hostname: '${input.clusterHostname}'
+      port: '${input.clusterPort}'
+      connectBy: ip
+      workers: '${input.numWorkers}'

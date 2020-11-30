@@ -1,0 +1,29 @@
+name: K8s On-Demand Namespace
+version: 1.0
+formatVersion: 1
+inputs:
+  namespace:
+    title: Name
+    type: string
+    pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+  maxPods:
+    title: Max Pods
+    type: string
+    description: The maximum number of pods in a non-terminal state in the namespace.
+  sumCPU:
+    title: CPU
+    type: string
+    description: The sum of CPU requests in the namespace.
+  sumMemory:
+    title: Memory
+    type: string
+    description: The sum of memory requests in the namespace.
+resources:
+  TKGi_Namespace:
+    type: Cloud.K8S.Namespace
+    properties:
+      name: '${input.namespace}'
+      limits:
+        pods: '${input.maxPods}'
+        cpu: '${input.sumCPU}'
+        memory: '${input.sumMemory}'
